@@ -1,13 +1,21 @@
 # 平台说明（统一配置与作业）
 
-本仓库包含多个模块：SISSO 描述符、机器学习建模、高通量计算与 VASP 工作流，已集中使用共享的配置与 SLURM 模板。
+本仓库包含多个模块：SISSO 描述符、机器学习建模、高通量计算与 VASP/FHI-aims 工作流，以及私有的 RAG 文献库与即将公开的 CISS + 色散一致 MLP 研究，已集中使用共享的配置与 SLURM 模板。
 
 ## 关键目录
 - `services/config/`: 全局配置 `default_config.json`；`loader.py` 为统一读取入口（集群/队列/模板/远程账号）；`manager.py` 提供默认配置与旧接口兼容（`config/` 仍保留薄包装）。
-- `services/`: 通用服务（SSH、SISSO、VASP 等）与各模块模板（SISSO、VASP、ML 自带各自的 slurm 脚本）。
+- `services/`: 通用服务（SSH、SISSO、VASP、FHI-aims 等）与各模块模板（SISSO、VASP、ML 自带各自的 slurm 脚本）。
 - `machine_learning/`: ML Dash 应用、作业生成与训练逻辑。
 - `discriptor/`: SISSO 描述符 Dash 应用。
 - `high-throught-calcultion/`: 高通量相关脚本与界面。
+- `rag/`: RAG 文献库对接（CherryStudio + 内部 2 万+ 文献库；数据与索引存放离线，需授权访问）。
+- `ciss/`: CISS 采样与色散一致 MLP（SO3 等变 + 显式长程项）即将随后续论文公布，当前为占位与路线说明。
+
+## 高精度物理内核：FHI-aims + vdW-surf + MBD-
+- 工作流位置：`services/aims/`（`workflow.py`、`template_manager.py`、`templates/`）。
+- 支持几何优化与单点能：`control.geometry_opt` / `control.static` 模板可直接扩展 vdW-surf、MBD- 等控制参数；需要时在 `control.in` 追加相关 block 即可。
+- 作业提交：`generate_slurm_script` 产出 SLURM 脚本，复用 `services/config/default_config.json` 的集群/队列设置，可按需调节 `n_nodes`、`n_procs`、`partition`、`aims_command`。
+- 高通量：仅需在准备输入时补充 vdW-surf/MBD- 相关参数（或预置 `control.*` 模板），即可批量生成作业。
 
 ## 配置与模板
 - `services/config/default_config.json` 使用 `active_cluster` 选择集群；每个 `clusters.<name>` 可指定 `remote_server`、`queue`（partition/time/nodes/ntasks_per_node）、`templates.slurm` 等。
